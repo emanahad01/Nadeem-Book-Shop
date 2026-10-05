@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nadeem Product Manager</title><style>body{margin:0;background:#f8f4ec;color:#302837;font:16px/1.5 system-ui,sans-serif}.wrap{max-width:760px;margin:0 auto;padding:40px 20px}h1{font:700 42px/1.05 Georgia,serif;color:#6b2d68}p{color:#695f6c}.panel{background:#eee6d8;padding:26px;border-radius:20px}label{display:block;font-size:13px;font-weight:700;color:#695f6c;margin:14px 0 6px}input,textarea,select{width:100%;padding:12px;border:1px solid #d6cdbd;border-radius:10px;background:#fffdf8;box-sizing:border-box;font:inherit}button{margin-top:18px;padding:13px 20px;border:0;border-radius:999px;background:#6b2d68;color:#fffdf8;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.preview{margin-top:12px;max-height:180px;max-width:100%;border-radius:10px;display:none}.status{margin-top:18px;font-weight:700;color:#6b2d68}</style></head><body><main class="wrap"><h1>Add a product</h1><p>Upload a photo, enter the product details, and it will be added to the Nadeem Book & Stationery catalog.</p><section class="panel"><label>Product name<input id="name" required placeholder="Dollar Blue Pen"></label><label>Price in Rs.<input id="price" type="number" min="0" required placeholder="70"></label><label>Category<select id="category"><option>Stationery</option><option>Books</option><option>School supplies</option><option>Gifts</option></select></label><label>Description<textarea id="description" rows="3" placeholder="Smooth everyday writing pen"></textarea></label><label>Product photo<input id="photo" type="file" accept="image/*"></label><img id="preview" class="preview" alt="Selected product photo"><button id="submit">Add product</button><div id="status" class="status"></div></section></main><script>const API='PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';const $=id=>document.getElementById(id);let selected=null;$('photo').onchange=e=>{selected=e.target.files[0];if(!selected)return;const r=new FileReader();r.onload=()=>{$('preview').src=r.result;$('preview').style.display='block'};r.readAsDataURL(selected)};$('submit').onclick=async()=>{if(!$('name').value||!$('price').value){$('status').textContent='Enter a product name and price.';return}if(API.includes('PASTE_')){$('status').textContent='Add your Apps Script /exec URL in the code first.';return}$('submit').disabled=true;$('status').textContent='Uploading...';let imageBase64='',imageName='',imageType='';if(selected){const data=await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.readAsDataURL(selected)});imageBase64=data;imageName=selected.name;imageType=selected.type}try{const res=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({name:$('name').value,price:$('price').value,category:$('category').value,description:$('description').value,imageBase64,imageName,imageType})});const out=await res.json();if(!out.ok)throw new Error(out.error||'Upload failed');$('status').textContent='Product added. Refresh the shop to see it.';$('name').value='';$('price').value='';$('description').value='';$('photo').value='';$('preview').style.display='none';selected=null}catch(e){$('status').textContent='Could not add product: '+e.message}finally{$('submit').disabled=false}}</script></body></html>
